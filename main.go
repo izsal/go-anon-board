@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/izsal/go-anon-board/config"
+	"github.com/izsal/go-anon-board/routes"
 )
 
 func main() {
 	c := config.NewConfig()
+	r := routes.NewRouter(c)
 
-	fmt.Println(c)
+	r.Serve()
 }
