@@ -3,11 +3,13 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/izsal/go-anon-board/config"
+	"github.com/izsal/go-anon-board/controllers"
 )
 
 type Router interface {
 	gin.IRouter
 	Serve() error
+	RegisterThreadRoutes(c controllers.ThreadController)
 }
 
 type router struct {
