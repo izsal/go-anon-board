@@ -1,6 +1,6 @@
 # Build Binary
 FROM golang:alpine as builder
-label maintainer ="Izsal Qurlinas Afandi"
+LABEL maintainer ="Izsal Qurlinas Afandi"
 RUN apk update && apk add  --no-cache git
 WORKDIR /app
 COPY go.mod go.sum ./
