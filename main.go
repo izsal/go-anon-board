@@ -9,16 +9,27 @@ import (
 )
 
 func main() {
+	//config
 	c := config.NewConfig()
 
+	//database
 	r := routes.NewRouter(c)
 	conn := database.NewDatabaseConnection(c)
 
+	// services
 	ts := services.NewThreadService(conn)
+	rs := services.NewReplyService(conn)
 
+	//controllers
 	tc := controllers.NewThreadController(ts)
+	rc := controllers.NewReplyController(rs)
+	ac := controllers.NewAdminController(ts, rs)
 
+	//routes
 	r.RegisterThreadRoutes(tc)
+	r.RegisterReplyRoutes(rc)
+	r.RegisterAdminRoutes(ac)
 
+	//start server
 	r.Serve()
 }

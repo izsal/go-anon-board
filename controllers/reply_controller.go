@@ -11,23 +11,24 @@ import (
 	"github.com/izsal/go-anon-board/utils"
 )
 
-type ThreadController interface {
-	ListThreads(c *gin.Context)
-	GetThread(c *gin.Context)
-	CreateThread(c *gin.Context)
-	ReportThread(c *gin.Context)
-	DeleteThread(c *gin.Context)
+type ReplyController interface {
+	ListReplies(c *gin.Context)
+	GetReply(c *gin.Context)
+	CreateReply(c *gin.Context)
+	ReportReply(c *gin.Context)
+	DeleteReply(c *gin.Context)
 }
 
-type threadController struct {
-	ts services.ThreadService
+type replyController struct {
+	rs services.ReplyService
 }
 
-func NewThreadController(ts services.ThreadService) ThreadController {
-	return &threadController{ts}
+func NewReplyController(rs services.ReplyService) ReplyController {
+	return &replyController{rs}
 }
 
-func (tc *threadController) ListThreads(c *gin.Context) {
+func (rc *replyController) ListReplies(c *gin.Context) {
+	tid := c.Param("tid")
 	page := 0
 	pageQuery := c.Query("page")
 	if pageQuery != "" {
@@ -38,44 +39,44 @@ func (tc *threadController) ListThreads(c *gin.Context) {
 		}
 		page = p
 	}
-	err, threads := tc.ts.List(page)
+	err, replies := rc.rs.ListByThreadID(tid, page)
 	if err != nil {
 		c.JSON(utils.ErrorFromDatabase(err))
 		return
 	}
-	c.JSON(http.StatusOK, threads)
+	c.JSON(http.StatusOK, replies)
 	return
 }
 
-func (tc *threadController) GetThread(c *gin.Context) {
+func (rc *replyController) GetReply(c *gin.Context) {
 	id := c.Param("id")
-	err, thread := tc.ts.GetByID(id)
+	err, reply := rc.rs.GetByID(id)
 	if err != nil {
 		c.JSON(utils.ErrorFromDatabase(err))
 		return
 	}
-	c.JSON(http.StatusOK, thread)
+	c.JSON(http.StatusOK, reply)
 	return
 }
 
-func (tc *threadController) CreateThread(c *gin.Context) {
-	var t models.Thread
-	if err := c.ShouldBindJSON(&t); err != nil {
+func (rc *replyController) CreateReply(c *gin.Context) {
+	tid := c.Param("tid")
+	var r models.Reply
+	if err := c.ShouldBindJSON(&r); err != nil {
 		c.JSON(utils.CreateApiError(http.StatusBadRequest, errors.New("invalid request body")))
-		return
 	}
-	err, thread := tc.ts.Create(t)
+	err, reply := rc.rs.Create(tid, r)
 	if err != nil {
 		c.JSON(utils.ErrorFromDatabase(err))
 		return
 	}
-	c.JSON(http.StatusCreated, thread)
+	c.JSON(http.StatusCreated, reply)
 	return
 }
 
-func (tc *threadController) ReportThread(c *gin.Context) {
+func (rc *replyController) ReportReply(c *gin.Context) {
 	id := c.Param("id")
-	err := tc.ts.Report(id)
+	err := rc.rs.Report(id)
 	if err != nil {
 		c.JSON(utils.ErrorFromDatabase(err))
 		return
@@ -86,14 +87,14 @@ func (tc *threadController) ReportThread(c *gin.Context) {
 	return
 }
 
-func (tc *threadController) DeleteThread(c *gin.Context) {
+func (rc *replyController) DeleteReply(c *gin.Context) {
 	id := c.Param("id")
 	password := c.Query("password")
 	if password == "" {
 		c.JSON(utils.CreateApiError(http.StatusBadRequest, errors.New("must provide password query")))
 		return
 	}
-	err := tc.ts.DeleteWithPassword(id, password)
+	err := rc.rs.DeleteWithPassword(id, password)
 	if err != nil {
 		c.JSON(utils.ErrorFromDatabase(err))
 		return
